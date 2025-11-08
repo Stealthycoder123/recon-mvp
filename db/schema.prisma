@@ -1,0 +1,55 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
+  attempts  Attempt[]
+}
+
+enum QuestionType {
+  MCQ
+  SHORT
+  ESSAY
+  DATA
+}
+
+model Question {
+  id            String   @id @default(uuid())
+  number        String?
+  type          QuestionType
+  questionText  String
+  topic         String
+  specPoint     String?
+  options       Json?          // for MCQs: ["A", "B", "C", "D"]
+  correctAnswer String?
+  markScheme    String?        // store mark scheme text / summary
+  marks         Int?
+  imageUrl      String?        // ✅ URL to any diagram, figure, or chart
+  dataExtract   String?        // ✅ for longer text extracts, tables, or context
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  attempts      Attempt[]
+}
+
+model Attempt {
+  id          String   @id @default(uuid())
+  userId      String
+  questionId  String
+  selected    String?
+  isCorrect   Boolean?
+  score       Int?
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  question Question @relation(fields: [questionId], references: [id])
+}
+
